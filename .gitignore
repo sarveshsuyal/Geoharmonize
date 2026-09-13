@@ -1,5 +1,5 @@
 # ==============================================================================
-# GeoHarmonize Root Git Ignore Configuration
+# GeoHarmonize - Git Ignore Configuration
 # ==============================================================================
 
 # --- Environment Variables & Secrets ---
@@ -9,7 +9,7 @@
 *.local
 
 # --- Python & Django ---
-**/__pycache__/
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -18,6 +18,8 @@
 htmlcov/
 *.egg-info/
 .eggs/
+.mypy_cache/
+.tox/
 .venv/
 venv/
 ENV/
@@ -25,14 +27,16 @@ ENV/
 # --- Django Databases & Generated Assets ---
 *.sqlite3
 db.sqlite3
-**/media/*
-!**/media/.gitkeep
-**/staticfiles/*
-!**/staticfiles/.gitkeep
+backend/media/*
+!backend/media/.gitkeep
+backend/staticfiles/*
+!backend/staticfiles/.gitkeep
 
 # --- Node & Frontend ---
-**/node_modules/
-**/dist/
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

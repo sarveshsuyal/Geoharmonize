@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply text-ink-800 antialiased; }
+}
+
+@layer components {
+  .status-badge {
+    @apply inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium;
+  }
+  .status-badge-high { @apply bg-green-50 text-status-high; }
+  .status-badge-medium { @apply bg-amber-50 text-status-medium; }
+  .status-badge-low { @apply bg-red-50 text-status-low; }
+  .card { @apply bg-white border border-ink-200 rounded-md shadow-sm; }
+  .btn-primary { @apply bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors; }
+  .btn-secondary { @apply bg-white hover:bg-ink-50 text-ink-700 text-sm font-medium px-3 py-1.5 rounded-md border border-ink-200 transition-colors; }
+}
