@@ -92,8 +92,15 @@ export default function AIAnalysisPanel({
         <div className="flex items-center gap-2">
           <span className="text-base">⚡</span>
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-brand-700">
-              AI Analysis Result
+            <div className="flex items-center gap-1.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-brand-700">
+                AI Analysis Result
+              </div>
+              {analysis.is_simulated && (
+                <span className="text-[9px] bg-amber-100 text-amber-800 font-medium px-1.5 py-0.5 rounded border border-amber-200">
+                  Preview (Docker Offline)
+                </span>
+              )}
             </div>
             <div className="text-[11px] text-ink-500">
               {stats.total_area_ha ? `${stats.total_area_ha} ha` : ""} ({stats.total_area_m2?.toLocaleString()} m²)

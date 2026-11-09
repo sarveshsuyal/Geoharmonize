@@ -1,0 +1,63 @@
+# ==============================================================================
+# Render Blueprint Specification (render.yaml)
+# GeoHarmonize: AI-Powered Multi-Source Geospatial Land Record Harmonization Platform
+# ==============================================================================
+
+databases:
+  # Managed PostgreSQL Database (Render PostgreSQL supports PostGIS)
+  - name: geoharmonize-postgis-db
+    databaseName: geoharmonize
+    user: geoharmonize
+    plan: free
+    region: oregon
+    postgresMajorVersion: 16
+
+services:
+  # 1. Django REST Backend with GeoDjango + GDAL (Docker Container)
+  - type: web
+    name: geoharmonize-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health/
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: geoharmonize-postgis-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"
+      - key: CORS_ALLOW_VERCEL_PREVIEWS
+        value: "True"
+      - key: PROJECT_TARGET_CRS
+        value: "EPSG:32644"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: GUNICORN_TIMEOUT
+        value: "120"
+
+  # 2. React + Vite Frontend (Free Static Site on Render)
+  - type: web
+    name: geoharmonize-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://geoharmonize-backend.onrender.com/api

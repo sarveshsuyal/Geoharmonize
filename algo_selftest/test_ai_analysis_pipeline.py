@@ -9,11 +9,14 @@ from pathlib import Path
 backend_dir = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(backend_dir))
 
+# pyrefly: ignore [missing-import]
 import numpy as np
 from shapely.geometry import Polygon, box, mapping
-
+# pyrefly: ignore [missing-import]
 from apps.ai.services.imagery_provider import ImageryProvider
+# pyrefly: ignore [missing-import]
 from apps.ai.services.land_use_classifier import LandUseClassifier, LAND_USE_CONFIG
+# pyrefly: ignore [missing-import]
 from apps.ai.services.recommendation_engine import PlanningRecommendationEngine
 
 

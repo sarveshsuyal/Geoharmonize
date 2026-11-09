@@ -1,6 +1,5 @@
 # GeoHarmonize backend requirements
-# NOTE: GDAL/GEOS/PROJ must be installed at the OS level (see Dockerfile) -
-# the Python bindings below link against those system libraries.
+# NOTE: System libraries (GDAL, GEOS, PROJ) are installed at OS level in Docker.
 
 Django>=5.0,<5.1
 djangorestframework>=3.15
@@ -9,18 +8,19 @@ djangorestframework-simplejwt>=5.3
 django-cors-headers>=4.3
 django-filter>=24.1
 psycopg2-binary>=2.9
+dj-database-url>=2.2.0
 
 # Geospatial
-GDAL==3.8.4        # pin to match the GDAL version installed in the Docker image
+# In Docker, GDAL python bindings matching the exact system gdal-config are pre-installed
 Fiona>=1.9
 Shapely>=2.0
 pyproj>=3.6
 rasterio>=1.3
 geopandas>=0.14
 
-# Computer vision / numerics
+# Computer vision / numerics (pinned to <2.0.0 to prevent C-ABI breaks with geospatial packages)
 opencv-python-headless>=4.9
-numpy>=1.26
+numpy>=1.26,<2.0.0
 Pillow>=10.2
 
 # Reports
@@ -30,9 +30,9 @@ reportlab>=4.1
 celery>=5.3
 redis>=5.0
 
-# Dev / testing
+# Dev / testing / production server
 pytest>=8.0
 pytest-django>=4.8
 factory-boy>=3.3
-gunicorn
+gunicorn>=22.0.0
 whitenoise>=6.6.0

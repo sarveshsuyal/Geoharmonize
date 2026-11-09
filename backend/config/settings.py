@@ -34,9 +34,21 @@ if not DEBUG and SECRET_KEY == "dev-insecure-secret-change-me":
 
 ALLOWED_HOSTS = [
     h.strip()
-    for h in env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
+    for h in env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,backend,frontend").split(",")
     if h.strip()
 ]
+
+# Auto-detect Render deployment hostname
+render_external_host = env("RENDER_EXTERNAL_HOSTNAME")
+if render_external_host and render_external_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_external_host)
+
+# Always allow *.onrender.com subdomains so Render health checks and routing never fail
+if ".onrender.com" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(".onrender.com")
+
+if env("RENDER", "False", bool) and "*" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("*")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -98,19 +110,56 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # ------------------------------------------------------------------
-# Database - PostgreSQL + PostGIS (mandatory; no SQLite fallback,
-# because spatial queries (ST_Intersects, ST_Area, etc.) require PostGIS).
+# Database - PostgreSQL + PostGIS (Production on Render / Docker)
+# Supports DATABASE_URL (Render, Supabase, Neon, AWS RDS, etc.)
+# with automatic fallback to POSTGRES_* environment variables.
 # ------------------------------------------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": env("POSTGRES_DB", "geoharmonize"),
-        "USER": env("POSTGRES_USER", "geoharmonize"),
-        "PASSWORD": env("POSTGRES_PASSWORD", "geoharmonize"),
-        "HOST": env("POSTGRES_HOST", "db"),
-        "PORT": env("POSTGRES_PORT", "5432"),
+import dj_database_url
+
+database_url = env("DATABASE_URL")
+if database_url:
+    # Handle postgres:// vs postgresql:// scheme
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    is_local_db = "localhost" in database_url or "127.0.0.1" in database_url or "db:5432" in database_url
+    ssl_needed = env("DB_SSL_REQUIRE", "False" if is_local_db else "True", bool)
+
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=database_url,
+            engine="django.contrib.gis.db.backends.postgis",
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=ssl_needed,
+        )
     }
-}
+elif env("USE_SQLITE", "False", bool):
+    try:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.contrib.gis.db.backends.spatialite",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
+    except Exception:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.contrib.gis.db.backends.postgis",
+            "NAME": env("POSTGRES_DB", "geoharmonize"),
+            "USER": env("POSTGRES_USER", "geoharmonize"),
+            "PASSWORD": env("POSTGRES_PASSWORD", "geoharmonize"),
+            "HOST": env("POSTGRES_HOST", "db"),
+            "PORT": env("POSTGRES_PORT", "5432"),
+        }
+    }
 
 # GDAL/GEOS library paths (used when running outside the provided Docker image,
 # e.g. on macOS with Homebrew GDAL). Leave unset inside Docker.
@@ -142,7 +191,7 @@ try:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
 except ImportError:
@@ -187,24 +236,37 @@ CORS_ALLOWED_ORIGINS = [
     o.strip()
     for o in env(
         "CORS_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174",
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000",
     ).split(",")
     if o.strip()
 ]
 
-CORS_ALLOW_ALL_ORIGINS = env("CORS_ALLOW_ALL_ORIGINS", "False", bool)
+# Allow all origins by default in production prototype so frontend on Vercel/Netlify can seamlessly call Render backend
+CORS_ALLOW_ALL_ORIGINS = env("CORS_ALLOW_ALL_ORIGINS", "True", bool)
 
-# Automatically support Vercel preview URLs (e.g. https://*.vercel.app) if enabled
-if env("CORS_ALLOW_VERCEL_PREVIEWS", "True", bool):
-    CORS_ALLOWED_ORIGIN_REGEXES = [
-        r"^https:\/\/.*\.vercel\.app$",
-    ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^https:\/\/.*\.onrender\.com$",
+    r"^https:\/\/.*\.netlify\.app$",
+    r"^https:\/\/.*\.github\.io$",
+]
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
-    for o in env("CSRF_TRUSTED_ORIGINS", "").split(",")
+    for o in env("CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://localhost:8000").split(",")
     if o.strip()
 ]
+
+if render_external_host:
+    render_origin = f"https://{render_external_host}"
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
+
+for host in ALLOWED_HOSTS:
+    if host not in ("localhost", "127.0.0.1", "0.0.0.0", "*", "backend", "frontend") and not host.startswith("."):
+        origin = f"https://{host}"
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
 
 # ------------------------------------------------------------------
 # GeoHarmonize application configuration (NOT hard-coded business data -

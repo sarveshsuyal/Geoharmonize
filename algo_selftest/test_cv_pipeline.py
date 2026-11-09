@@ -4,7 +4,9 @@ apps/ai/services/feature_extractor.py actually finds rectangular
 'building-like' shapes on a synthetic test image, using the real
 cv2/numpy pipeline (both ARE installed in this sandbox).
 """
+# pyrefly: ignore [missing-import]
 import cv2
+# pyrefly: ignore [missing-import]
 import numpy as np
 
 img = np.zeros((400, 400), dtype=np.uint8)

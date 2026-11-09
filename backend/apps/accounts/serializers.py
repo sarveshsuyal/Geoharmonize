@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate
+# pyrefly: ignore [missing-import]
 from rest_framework import serializers
+# pyrefly: ignore [missing-import]
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 
@@ -15,7 +17,19 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        user = authenticate(username=attrs["username"], password=attrs["password"])
+        identifier = attrs["username"]
+        password = attrs["password"]
+
+        user = authenticate(username=identifier, password=password)
+        if not user:
+            # Check if identifier was passed as email
+            try:
+                candidate = User.objects.get(email__iexact=identifier)
+                if candidate.check_password(password):
+                    user = candidate
+            except (User.DoesNotExist, User.MultipleObjectsReturned):
+                pass
+
         if not user:
             raise serializers.ValidationError("Invalid credentials.")
         if not user.is_active:
