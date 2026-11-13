@@ -26,7 +26,7 @@ geopandas>=0.14,<2.0
 
 # Computer Vision and Numerical Processing
 numpy>=1.26,<2.0
-opencv-python-headless>=4.9,<5.0
+opencv-python-headless>=4.9,<4.12
 Pillow>=10.2,<13.0
 
 # PDF Report Generation
