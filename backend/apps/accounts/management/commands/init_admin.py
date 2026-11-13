@@ -49,14 +49,21 @@ class Command(BaseCommand):
 
         User = get_user_model()
 
-        if User.objects.filter(username=username).exists():
-            self.stdout.write(
-                self.style.WARNING(
-                    f"User '{username}' already exists. "
-                    "No account details or password were changed."
+        existing_user = User.objects.filter(username=username).first()
+        if existing_user:
+            if existing_user.is_superuser and existing_user.role == Role.ADMIN:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Administrator '{username}' already exists. "
+                        "No account details or password were changed."
+                    )
                 )
-            )
-            return
+                return
+            else:
+                raise CommandError(
+                    f"User '{username}' already exists but is not a verified administrator/superuser. "
+                    "To prevent account takeover, no credentials or roles were modified automatically."
+                )
 
         if User.objects.filter(email__iexact=email).exists():
             raise CommandError(
