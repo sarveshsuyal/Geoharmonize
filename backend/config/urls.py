@@ -7,54 +7,69 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
-
 from django.db import connection
+
+
 
 def health_check(request):
     db_ok = False
     postgis_ok = False
     db_error = None
+    postgis_error = None
     postgis_version = None
 
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT 1;")
+            cursor.execute("SELECT 1")
             db_ok = True
+
             try:
-                cursor.execute("SELECT PostGIS_Full_Version();")
+                cursor.execute("SELECT PostGIS_Full_Version()")
                 row = cursor.fetchone()
+
                 if row:
                     postgis_version = row[0]
                     postgis_ok = True
-            except Exception as pe:
-                postgis_error = str(pe)
+
+            except Exception as exc:
+                postgis_error = str(exc)
+
     except Exception as exc:
         db_error = str(exc)
 
-    return JsonResponse({
-        "status": "ok" if db_ok else "initializing",
-        "service": "geoharmonize-api",
-        "version": "1.0.0",
-        "platform": "Render / Docker Cloud",
-        "database": {
-            "connected": db_ok,
-            "postgis_ready": postgis_ok,
-            "postgis_version": postgis_version,
-            "error": db_error,
+    ready = db_ok and postgis_ok
+
+    return JsonResponse(
+        {
+            "status": "healthy" if ready else "not_ready",
+            "service": "geoharmonize-api",
+            "version": "1.0.0",
+
+            "database": {
+                "connected": db_ok,
+                "postgis_ready": postgis_ok,
+                "postgis_version": postgis_version,
+                "error": db_error,
+                "postgis_error": postgis_error,
+            },
+
+            "endpoints": {
+                "auth": "/api/auth/",
+                "datasets": "/api/datasets/",
+                "geospatial": "/api/geospatial/",
+                "parcels": "/api/parcels/",
+                "harmonization": "/api/harmonization/",
+                "conflicts": "/api/conflicts/",
+                "change_detection": "/api/change-detection/",
+                "ai": "/api/ai/",
+                "dashboard": "/api/dashboard/",
+                "reports": "/api/reports/",
+                "demo": "/api/demo/",
+                "health": "/health/",
+            },
         },
-        "endpoints": {
-            "auth": "/api/auth/token/",
-            "datasets": "/api/datasets/",
-            "parcels": "/api/parcels/",
-            "harmonization": "/api/harmonization/",
-            "conflicts": "/api/conflicts/",
-            "change_detection": "/api/change-detection/",
-            "dashboard": "/api/dashboard/stats/",
-            "reports": "/api/reports/",
-            "demo": "/api/demo/run/",
-            "health": "/health/",
-        }
-    })
+        status=200 if ready else 503,
+    )
 
 urlpatterns = [
     path("", health_check, name="root-health"),
