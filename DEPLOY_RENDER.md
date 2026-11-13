@@ -26,19 +26,14 @@ If your previous Render deployment failed at ~44s, here is the exact technical d
 
 ## 🛠️ Step-by-Step Render Deployment
 
-### Step 1: Create the PostgreSQL Database on Render
-1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** -> **PostgreSQL**.
-2. Settings:
-   - **Name:** `geoharmonize-db`
-   - **Database:** `geoharmonize`
-   - **User:** `geoharmonize`
-   - **Region:** Oregon (or closest region)
-   - **PostgreSQL Version:** 16
-   - **Plan:** Free
-3. Click **Create Database**.
-4. Once active, copy the **Internal Database URL** (for services within Render).
+### Step 1: Database Setup on Supabase (Free, Permanent PostGIS)
+The PostgreSQL database is hosted on **Supabase** (Permanent free tier with native PostGIS, avoids Render's 30-day database deletion policy).
+- **Supabase Host:** `db.tyjkryefbludpiebjhvd.supabase.co`
+- **PostGIS Version:** `3.3` (pre-verified and enabled)
+- **DATABASE_URL format:**
+  `postgresql://postgres:[PASSWORD]@db.tyjkryefbludpiebjhvd.supabase.co:5432/postgres?sslmode=require`
 
-### Step 2: Configure the Backend Web Service
+### Step 2: Configure the Backend Web Service on Render
 1. In Render Dashboard, click **New +** -> **Web Service**.
 2. Connect your repository: `https://github.com/sarveshsuyal/Geoharmonize` (branch `main`).
 3. Set the service properties:
