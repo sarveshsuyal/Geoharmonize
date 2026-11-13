@@ -177,7 +177,7 @@ export default function LoginPage() {
               </div>
               <p className="text-slate-400 leading-relaxed">
                 Connect this UI to your deployed Render service (e.g.{" "}
-                <code className="text-sky-300">https://geoharmonize-backend.onrender.com/api</code>) or local
+                <code className="text-sky-300">https://geoharmonize-backend-8b1m.onrender.com/api</code>) or local
                 Docker backend.
               </p>
               <form onSubmit={handleSaveApiUrl} className="space-y-2">
@@ -186,7 +186,7 @@ export default function LoginPage() {
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500"
                   value={customUrlInput}
                   onChange={(e) => setCustomUrlInput(e.target.value)}
-                  placeholder="https://your-service.onrender.com/api"
+                  placeholder="https://geoharmonize-backend-8b1m.onrender.com/api"
                   required
                 />
                 <div className="flex justify-end gap-2 pt-1">

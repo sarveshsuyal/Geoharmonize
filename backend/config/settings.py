@@ -95,7 +95,7 @@ render_external_host = env("RENDER_EXTERNAL_HOSTNAME")
 
 ALLOWED_HOSTS = env_list(
     "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,0.0.0.0,backend,frontend"
+    "localhost,127.0.0.1,0.0.0.0,backend,frontend,.onrender.com,geoharmonize-backend-8b1m.onrender.com"
 )
 
 if render_external_host:
@@ -420,7 +420,8 @@ CORS_ALLOWED_ORIGINS = env_list(
         "http://127.0.0.1:5173,"
         "http://localhost:5174,"
         "http://127.0.0.1:5174,"
-        "http://localhost:3000"
+        "http://localhost:3000,"
+        "https://geoharmonize-xi.vercel.app"
     )
 )
 
@@ -440,12 +441,14 @@ CSRF_TRUSTED_ORIGINS = env_list(
     (
         "http://localhost:5173,"
         "http://localhost:5174,"
-        "http://localhost:3000"
+        "http://localhost:3000,"
+        "https://geoharmonize-xi.vercel.app,"
+        "https://geoharmonize-backend-8b1m.onrender.com"
     )
 )
 
 # Add explicitly configured frontend origin.
-frontend_url = env("FRONTEND_URL")
+frontend_url = env("FRONTEND_URL", "https://geoharmonize-xi.vercel.app")
 
 if frontend_url:
     add_unique(CORS_ALLOWED_ORIGINS, frontend_url.rstrip("/"))

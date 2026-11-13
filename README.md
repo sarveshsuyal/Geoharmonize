@@ -270,10 +270,10 @@ Ensure all changes are committed and pushed to `https://github.com/sarveshsuyal/
    - `DATABASE_URL`: `[Paste Internal Database URL from Step 2]`
    - `DJANGO_SECRET_KEY`: `[Generate a secure random string]`
    - `DJANGO_DEBUG`: `False`
-   - `DJANGO_ALLOWED_HOSTS`: `.onrender.com`
-   - `FRONTEND_URL`: `https://<your-vercel-domain>.vercel.app`
-   - `CORS_ALLOWED_ORIGINS`: `https://<your-vercel-domain>.vercel.app`
-   - `CSRF_TRUSTED_ORIGINS`: `https://<your-vercel-domain>.vercel.app`
+   - `DJANGO_ALLOWED_HOSTS`: `.onrender.com,geoharmonize-backend-8b1m.onrender.com,localhost,127.0.0.1`
+   - `FRONTEND_URL`: `https://geoharmonize-xi.vercel.app`
+   - `CORS_ALLOWED_ORIGINS`: `http://localhost:5173,https://geoharmonize-xi.vercel.app`
+   - `CSRF_TRUSTED_ORIGINS`: `http://localhost:5173,https://geoharmonize-xi.vercel.app,https://geoharmonize-backend-8b1m.onrender.com`
 4. Deploy the service. The container will automatically execute `init_postgis.py`, run `manage.py migrate`, collect static files, and launch Gunicorn on `$PORT`.
 
 ### Step 4: Frontend Deployment on Vercel
@@ -284,12 +284,8 @@ Ensure all changes are committed and pushed to `https://github.com/sarveshsuyal/
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
 3. Under **Environment Variables**, add:
-   - `VITE_API_BASE_URL` = `https://<your-render-backend-name>.onrender.com/api`
-4. Click **Deploy**. Vercel will build the React SPA and provide a production HTTPS URL.
-
-> [!NOTE]
-> **Optional Render Static Frontend in `render.yaml`:**  
-> The included `render.yaml` Blueprint specifies both `geoharmonize-backend` and an optional `geoharmonize-frontend`. If you deploy via Vercel, the Render static frontend is optional and does not need to be active.
+   - `VITE_API_BASE_URL` = `https://geoharmonize-backend-8b1m.onrender.com/api`
+4. Click **Deploy**. Vercel will build the React SPA and serve it on `https://geoharmonize-xi.vercel.app`.
 
 ---
 

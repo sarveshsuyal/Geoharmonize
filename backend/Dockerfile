@@ -22,9 +22,7 @@ WORKDIR /app
 
 # Copy requirements and dynamically install GDAL matching host Debian version
 COPY requirements.txt ./
-RUN GDAL_VERSION=$(gdal-config --version) && \
-    pip install --no-cache-dir "GDAL==${GDAL_VERSION}.*" && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend application code
 COPY . /app/

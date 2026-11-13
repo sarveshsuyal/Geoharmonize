@@ -1,7 +1,11 @@
 import axios from "axios";
 
-// Default base URL from environment variable or fallback to localhost
-const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+// Default base URL from environment variable or production Render URL
+const DEFAULT_API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD
+    ? "https://geoharmonize-backend-8b1m.onrender.com/api"
+    : "http://localhost:8000/api");
 
 // Retrieve user-customized API base URL if saved in localStorage
 export function getApiBaseUrl() {

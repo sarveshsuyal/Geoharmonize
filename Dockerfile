@@ -51,9 +51,6 @@ COPY backend/requirements.txt /app/requirements.txt
 
 RUN set -eux; \
     python -m pip install --upgrade pip setuptools wheel; \
-    GDAL_VERSION="$(gdal-config --version)"; \
-    echo "Detected system GDAL version: ${GDAL_VERSION}"; \
-    python -m pip install "GDAL==${GDAL_VERSION}"; \
     python -m pip install -r /app/requirements.txt; \
     python -m pip check
 
