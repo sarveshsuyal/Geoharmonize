@@ -1,48 +1,79 @@
+
 """
-Management command to provision or update the default administrator account.
-Runs automatically on Docker container startup.
+Secure administrator bootstrap command.
+
+Creates an administrator only when BOOTSTRAP_ADMIN=true.
+Never stores administrator credentials in source code.
+Does not reset an existing administrator's password on redeployment.
 """
-from django.core.management.base import BaseCommand
-# pyrefly: ignore [missing-import]
-from apps.accounts.models import User, Role
+
+import os
+
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand, CommandError
+
+from apps.accounts.models import Role
 
 
 class Command(BaseCommand):
-    help = "Initializes default administrator account with full GIS & admin privileges"
+    help = "Creates the initial administrator using environment variables."
 
     def handle(self, *args, **options):
-        username = "sarvesh"
-        email = "sarvesh112k@gmail.com"
-        password = "sarvesh@suyal"
+        enabled = os.getenv("BOOTSTRAP_ADMIN", "false").lower() in {
+            "1", "true", "yes", "on"
+        }
 
-        user = User.objects.filter(username=username).first()
-        if not user:
-            user = User.objects.filter(email=email).first()
-
-        if user:
-            user.username = username
-            user.email = email
-            user.set_password(password)
-            user.role = Role.ADMIN
-            user.is_staff = True
-            user.is_superuser = True
-            user.is_active = True
-            user.first_name = "Sarvesh"
-            user.last_name = "Suyal"
-            user.organization = "Department of Land Resources"
-            user.designation = "Administrator"
-            user.save()
-            self.stdout.write(self.style.SUCCESS(f"Updated administrator account: {username} ({email})"))
-        else:
-            User.objects.create_superuser(
-                username=username,
-                email=email,
-                password=password,
-                role=Role.ADMIN,
-                first_name="Sarvesh",
-                last_name="Suyal",
-                organization="Department of Land Resources",
-                designation="Administrator",
-                is_active=True,
+        if not enabled:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Administrator bootstrap skipped. "
+                    "Set BOOTSTRAP_ADMIN=true to enable it."
+                )
             )
-            self.stdout.write(self.style.SUCCESS(f"Created administrator account: {username} ({email})"))
+            return
+
+        username = os.getenv("ADMIN_USERNAME", "").strip()
+        email = os.getenv("ADMIN_EMAIL", "").strip()
+        password = os.getenv("ADMIN_PASSWORD", "")
+
+        if not username or not email or not password:
+            raise CommandError(
+                "ADMIN_USERNAME, ADMIN_EMAIL and ADMIN_PASSWORD "
+                "must all be configured."
+            )
+
+        if len(password) < 12:
+            raise CommandError(
+                "ADMIN_PASSWORD must contain at least 12 characters."
+            )
+
+        User = get_user_model()
+
+        if User.objects.filter(username=username).exists():
+            self.stdout.write(
+                self.style.WARNING(
+                    f"User '{username}' already exists. "
+                    "No account details or password were changed."
+                )
+            )
+            return
+
+        if User.objects.filter(email__iexact=email).exists():
+            raise CommandError(
+                "An account with this email already exists. "
+                "No administrator was created."
+            )
+
+        User.objects.create_superuser(
+            username=username,
+            email=email,
+            password=password,
+            role=Role.ADMIN,
+            is_active=True,
+        )
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Administrator '{username}' created successfully."
+            )
+        )
