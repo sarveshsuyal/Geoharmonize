@@ -1,43 +1,84 @@
-# ==============================================================================
-# GeoHarmonize - Root Dockerfile for Render / Cloud Container Deployment
-# Allows 1-click Docker builds when repo root is the build context.
-# ==============================================================================
+
+# ==========================================================
+# GeoHarmonize - Production Backend Dockerfile
+# Platform: Render
+# Python: 3.12
+# Framework: Django + GeoDjango
+# Database: PostgreSQL + PostGIS
+# ==========================================================
+
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
-ENV C_INCLUDE_PATH=/usr/include/gdal
+# ----------------------------------------------------------
+# 1. Python environment
+# ----------------------------------------------------------
 
-# Install system dependencies for GeoDjango, GDAL, GEOS, PROJ, and PostgreSQL client
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    CPLUS_INCLUDE_PATH=/usr/include/gdal \
+    C_INCLUDE_PATH=/usr/include/gdal
+
+# ----------------------------------------------------------
+# 2. Install system-level geospatial dependencies
+# ----------------------------------------------------------
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     binutils \
-    libproj-dev \
+    curl \
+    dos2unix \
     gdal-bin \
     libgdal-dev \
     libgeos-dev \
-    build-essential \
+    libproj-dev \
     libpq-dev \
-    curl \
-    dos2unix \
     && rm -rf /var/lib/apt/lists/*
+
+# ----------------------------------------------------------
+# 3. Application directory
+# ----------------------------------------------------------
 
 WORKDIR /app
 
-# Copy requirements from backend directory
-COPY backend/requirements.txt ./
-RUN GDAL_VERSION=$(gdal-config --version) && \
-    pip install --no-cache-dir "GDAL==${GDAL_VERSION}.*" && \
-    pip install --no-cache-dir -r requirements.txt
+# ----------------------------------------------------------
+# 4. Install Python dependencies
+# Copy requirements first for Docker layer caching
+# ----------------------------------------------------------
 
-# Copy backend application
+COPY backend/requirements.txt /app/requirements.txt
+
+RUN set -eux; \
+    python -m pip install --upgrade pip setuptools wheel; \
+    GDAL_VERSION="$(gdal-config --version)"; \
+    echo "Detected system GDAL version: ${GDAL_VERSION}"; \
+    python -m pip install "GDAL==${GDAL_VERSION}"; \
+    python -m pip install -r /app/requirements.txt; \
+    python -m pip check
+
+# ----------------------------------------------------------
+# 5. Copy backend application
+# ----------------------------------------------------------
+
 COPY backend/ /app/
 
-# Ensure runtime directories exist, line endings are normalized, and permissions are set
-RUN mkdir -p /app/media /app/staticfiles /app/media/fixtures && \
-    dos2unix /app/scripts/start.sh && \
+# ----------------------------------------------------------
+# 6. Prepare runtime directories and startup script
+# ----------------------------------------------------------
+
+RUN set -eux; \
+    mkdir -p /app/media /app/staticfiles /app/media/fixtures; \
+    dos2unix /app/scripts/start.sh; \
     chmod +x /app/scripts/start.sh
 
+# ----------------------------------------------------------
+# 7. Runtime configuration
+# ----------------------------------------------------------
+
 EXPOSE 8000
+
+# Render dynamically assigns PORT.
+# start.sh reads PORT and starts Gunicorn.
 
 CMD ["/bin/bash", "/app/scripts/start.sh"]
