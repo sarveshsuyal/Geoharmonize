@@ -41,7 +41,7 @@ services:
       - key: PROJECT_TARGET_CRS
         value: "EPSG:32644"
       - key: WEB_CONCURRENCY
-        value: "2"
+        value: "1"
       - key: GUNICORN_TIMEOUT
         value: "120"
 
