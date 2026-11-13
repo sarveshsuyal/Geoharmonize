@@ -100,10 +100,9 @@ ALLOWED_HOSTS = env_list(
 
 if render_external_host:
     add_unique(ALLOWED_HOSTS, render_external_host)
-
-if IS_RENDER and not render_external_host:
+elif IS_RENDER and not any(".onrender.com" in host for host in ALLOWED_HOSTS):
     raise RuntimeError(
-        "RENDER_EXTERNAL_HOSTNAME is missing."
+        "RENDER_EXTERNAL_HOSTNAME is missing and no Render host configured in DJANGO_ALLOWED_HOSTS."
     )
 
 if "*" in ALLOWED_HOSTS:
@@ -451,6 +450,10 @@ frontend_url = env("FRONTEND_URL")
 if frontend_url:
     add_unique(CORS_ALLOWED_ORIGINS, frontend_url.rstrip("/"))
     add_unique(CSRF_TRUSTED_ORIGINS, frontend_url.rstrip("/"))
+
+# Allow backend host itself for Django Admin CSRF verification on Render
+if render_external_host:
+    add_unique(CSRF_TRUSTED_ORIGINS, f"https://{render_external_host}")
 
 
 # ==========================================================

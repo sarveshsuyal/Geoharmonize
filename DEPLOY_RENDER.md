@@ -25,10 +25,11 @@ If your previous deployment on Render failed, here is why:
    - Automatically runs `CREATE EXTENSION IF NOT EXISTS postgis;`
    - Runs `python manage.py migrate --noinput`
    - Runs `python manage.py collectstatic --noinput`
-   - Automatically creates the administrator account:
-     - **Username**: `sarvesh`
-     - **Email**: `sarvesh112k@gmail.com`
-     - **Password**: `sarvesh@suyal`
+   - Supports opt-in administrator bootstrap via environment variables:
+     - `BOOTSTRAP_ADMIN=true`
+     - `ADMIN_USERNAME=<your-chosen-username>`
+     - `ADMIN_EMAIL=<your-email>`
+     - `ADMIN_PASSWORD=<your-secure-password-min-12-chars>`
 5. **Render Blueprint (`render.yaml`)**: Complete Infrastructure-as-Code for 1-click provisioning of the PostGIS database, Docker backend, and static frontend.
 6. **Cloud Host Headers & CORS**: `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` now automatically detect `.onrender.com` and `RENDER_EXTERNAL_HOSTNAME`.
 
@@ -110,9 +111,7 @@ If you prefer to configure the service manually on the Render dashboard:
    ```
 2. **Admin Portal**:
    Visit `https://<your-backend-name>.onrender.com/admin/`
-   Log in with:
-   - **Username**: `sarvesh`
-   - **Password**: `sarvesh@suyal`
+   Log in with your configured administrator credentials (set via `ADMIN_USERNAME` and `ADMIN_PASSWORD` or created via `manage.py createsuperuser`).
 
 ---
 

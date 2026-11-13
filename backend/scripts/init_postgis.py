@@ -8,6 +8,11 @@ from urllib.parse import urlparse
 
 def ensure_postgis():
     print("[init_postgis] Checking PostgreSQL / PostGIS extension...")
+    use_sqlite = os.environ.get("USE_SQLITE", "false").lower() in ("1", "true", "yes", "on")
+    if use_sqlite:
+        print("[init_postgis] USE_SQLITE is enabled. Skipping PostgreSQL PostGIS extension check.")
+        return
+
     database_url = os.environ.get("DATABASE_URL")
     
     conn_params = {}
@@ -46,8 +51,11 @@ def ensure_postgis():
             print(f"[init_postgis] PostGIS successfully verified: {ver[0] if ver else 'enabled'}")
         conn.close()
     except Exception as exc:
-        print(f"[init_postgis] Notice: PostGIS initialization encountered: {exc}")
-        print("[init_postgis] Proceeding to Django migrations...")
+        print(f"[init_postgis] ERROR: PostGIS initialization failed: {exc}", file=sys.stderr)
+        # If running on Render or against explicit DATABASE_URL, fail fast to alert operator
+        if database_url or os.environ.get("RENDER", "false").lower() in ("1", "true", "yes", "on"):
+            raise SystemExit(1)
+        print("[init_postgis] Local environment without PostgreSQL. Proceeding with caution...")
 
 if __name__ == "__main__":
     ensure_postgis()

@@ -2,6 +2,7 @@
 GeoHarmonize root URL configuration.
 Each app owns its own urls.py; this file only mounts them under /api/.
 """
+import logging
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -9,6 +10,7 @@ from django.conf.urls.static import static
 from django.http import JsonResponse
 from django.db import connection
 
+logger = logging.getLogger("geoharmonize")
 
 
 def health_check(request):
@@ -32,10 +34,12 @@ def health_check(request):
                     postgis_ok = True
 
             except Exception as exc:
-                postgis_error = str(exc)
+                logger.error("PostGIS verification failed: %s", exc)
+                postgis_error = str(exc) if settings.DEBUG else "PostGIS check failed"
 
     except Exception as exc:
-        db_error = str(exc)
+        logger.error("Database connectivity check failed: %s", exc)
+        db_error = str(exc) if settings.DEBUG else "Database connection failed"
 
     ready = db_ok and postgis_ok
 

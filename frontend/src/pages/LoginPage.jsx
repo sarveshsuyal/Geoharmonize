@@ -20,8 +20,8 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("sarvesh");
-  const [password, setPassword] = useState("sarvesh@suyal");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [coldStartActive, setColdStartActive] = useState(false);
@@ -54,12 +54,6 @@ export default function LoginPage() {
     setCurrentApiUrl(getApiBaseUrl());
     testBackend();
     setShowConfig(false);
-  }
-
-  function handleQuickFill() {
-    setUsername("sarvesh");
-    setPassword("sarvesh@suyal");
-    setError("");
   }
 
   async function handleSubmit(e) {
@@ -262,7 +256,7 @@ export default function LoginPage() {
                   className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-colors"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="sarvesh or sarvesh112k@gmail.com"
+                  placeholder="Enter username or email"
                   required
                 />
               </div>
@@ -299,22 +293,6 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-
-            {/* Quick Fill Button */}
-            <div className="mt-5 pt-4 border-t border-slate-800 text-center">
-              <button
-                type="button"
-                onClick={handleQuickFill}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-teal-300 bg-teal-950/60 border border-teal-800/80 hover:bg-teal-900/60 transition-colors"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                Auto-Fill Administrator Credentials
-              </button>
-              <div className="text-[11px] text-slate-400 mt-2">
-                User: <span className="text-slate-300 font-mono">sarvesh</span> · Password:{" "}
-                <span className="text-slate-300 font-mono">sarvesh@suyal</span>
-              </div>
-            </div>
           </div>
         </div>
       </main>
