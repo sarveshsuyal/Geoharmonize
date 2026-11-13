@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginDemo } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -96,6 +96,19 @@ export default function LoginPage() {
       } else {
         setError("Invalid username or password. Please verify credentials.");
       }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDemoLogin() {
+    setBusy(true);
+    setError("");
+    try {
+      await loginDemo("ADMIN");
+      navigate("/dashboard");
+    } catch {
+      setError("Unable to initialize demo mode. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -293,6 +306,32 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
+
+            {/* Divider */}
+            <div className="relative my-5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-800" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
+                <span className="bg-slate-900/90 px-3 text-slate-500 font-semibold">
+                  Or instant access
+                </span>
+              </div>
+            </div>
+
+            {/* 1-Click Instant Demo Access Button */}
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={busy}
+              className="w-full py-2.5 px-4 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-teal-300 hover:text-teal-200 border border-teal-500/30 hover:border-teal-400/60 font-medium text-sm flex items-center justify-center gap-2 shadow-sm transition-all group"
+            >
+              <Sparkles className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
+              <span>⚡ Instant Demo Access (Explore as GIS Officer)</span>
+            </button>
+            <p className="text-[11px] text-center text-slate-500 mt-2">
+              1-click guest access for evaluators, portfolio reviews & demonstration.
+            </p>
           </div>
         </div>
       </main>
