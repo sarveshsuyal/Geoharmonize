@@ -1,29 +1,42 @@
 
 #!/usr/bin/env bash
+
 set -Eeuo pipefail
 
-echo "=========================================="
+echo "=========================================================="
 echo " Starting GeoHarmonize Backend"
 echo " Environment: ${RENDER:-Local}"
 echo " Port: ${PORT:-8000}"
-echo "=========================================="
+echo "=========================================================="
 
 cd /app
 
-# 1. Initialize PostGIS
-echo "[1/4] Checking PostGIS..."
+# 1. Initialize and verify PostGIS
+echo "[1/5] Checking PostGIS..."
+
 python scripts/init_postgis.py
 
 # 2. Apply database migrations
-echo "[2/4] Applying database migrations..."
+echo "[2/5] Applying database migrations..."
+
 python manage.py migrate --noinput
 
-# 3. Collect static assets
-echo "[3/4] Collecting static assets..."
+# 3. Collect static files
+echo "[3/5] Collecting static files..."
+
 python manage.py collectstatic --noinput
 
-# 4. Start Gunicorn
-echo "[4/4] Starting application..."
+# 4. Create administrator only when explicitly enabled
+echo "[4/5] Checking administrator bootstrap configuration..."
+
+if [[ "${BOOTSTRAP_ADMIN:-false}" =~ ^(1|true|yes|on)$ ]]; then
+    python manage.py init_admin
+else
+    echo "Administrator bootstrap disabled. Skipping."
+fi
+
+# 5. Start Gunicorn
+echo "[5/5] Starting Gunicorn..."
 
 TARGET_PORT="${PORT:-8000}"
 WORKERS="${WEB_CONCURRENCY:-1}"
