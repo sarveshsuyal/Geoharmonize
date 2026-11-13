@@ -1,38 +1,37 @@
-# GeoHarmonize backend requirements
-# NOTE: System libraries (GDAL, GEOS, PROJ) are installed at OS level in Docker.
 
+# ==========================================
+# GeoHarmonize - Production Requirements
+# Python 3.12
+# ==========================================
+
+# Django Core
 Django>=5.0,<5.1
-djangorestframework>=3.15
-djangorestframework-gis>=1.0
-djangorestframework-simplejwt>=5.3
-django-cors-headers>=4.3
-django-filter>=24.1
-psycopg2-binary>=2.9
-dj-database-url>=2.2.0
+djangorestframework>=3.15,<3.16
+djangorestframework-gis>=1.0,<2.0
+djangorestframework-simplejwt>=5.3,<6.0
+django-cors-headers>=4.3,<5.0
+django-filter>=24.1,<26.0
 
-# Geospatial
-# In Docker, GDAL python bindings matching the exact system gdal-config are pre-installed
-Fiona>=1.9
-Shapely>=2.0
-pyproj>=3.6
-rasterio>=1.3
-geopandas>=0.14
+# Database
+psycopg2-binary>=2.9,<3.0
+dj-database-url>=2.2,<3.0
 
-# Computer vision / numerics (pinned to <2.0.0 to prevent C-ABI breaks with geospatial packages)
-opencv-python-headless>=4.9
-numpy>=1.26,<2.0.0
-Pillow>=10.2
+# Geospatial Processing
+# GDAL Python bindings are installed separately by the root Dockerfile.
+Fiona>=1.9,<2.0
+Shapely>=2.0,<3.0
+pyproj>=3.6,<4.0
+rasterio>=1.3,<2.0
+geopandas>=0.14,<2.0
 
-# Reports
-reportlab>=4.1
+# Computer Vision and Numerical Processing
+numpy>=1.26,<2.0
+opencv-python-headless>=4.9,<5.0
+Pillow>=10.2,<13.0
 
-# Async task queue (architecture-ready; not required for synchronous MVP processing)
-celery>=5.3
-redis>=5.0
+# PDF Report Generation
+reportlab>=4.1,<5.0
 
-# Dev / testing / production server
-pytest>=8.0
-pytest-django>=4.8
-factory-boy>=3.3
-gunicorn>=22.0.0
-whitenoise>=6.6.0
+# Production Server
+gunicorn>=22.0,<24.0
+whitenoise>=6.6,<7.0
